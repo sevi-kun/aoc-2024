@@ -5,17 +5,19 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 )
 
 func main() {
 	//fmt.Println(part1("example_input.txt"))
-	fmt.Println(part1("input.txt"))
+	//fmt.Println(part1("input.txt"))
 	//fmt.Println(part2("example_input.txt"))
-	//fmt.Println(part2("input.txt"))
+	fmt.Println(part2("input.txt"))
 
 }
+
 
 func part1(filename string) int {
 	data := readFile(filename)
@@ -28,6 +30,35 @@ func part1(filename string) int {
 	}
 
 	return safe_report_count
+}
+
+func part2(filename string) int {
+	data := readFile(filename)
+	var safe_report_count int
+
+	for _, report := range data {
+
+		if verifyOrder(report, 0, "unknown") {
+			safe_report_count++
+			//fmt.Println(report)
+		} else {
+
+			for i := 0; i < len(report); i++ {
+				modifiedReport := append([]int{}, report...)
+				modifiedReport = slices.Delete(modifiedReport, i, i+1)
+
+				if verifyOrder(modifiedReport, 0, "unknown") {
+					safe_report_count++
+					//fmt.Println(modifiedReport)
+					break
+				}
+			}
+		}
+
+	}
+
+	return safe_report_count
+
 }
 
 
