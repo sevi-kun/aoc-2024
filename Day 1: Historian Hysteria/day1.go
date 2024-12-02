@@ -5,13 +5,58 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
 )
 
 func main() {
-	data := sort2D(readFile("input.txt"))
+	//fmt.Println(part1("example_input.txt"))
+	//fmt.Println(part1("input.txt"))
+	//fmt.Println(part2("example_input.txt"))
+	fmt.Println(part2("input.txt"))
+
+}
+
+
+func part2(filename string) int {
+	var similarity_score int
+
+	list1, list2 := readFile(filename)
+
+	//fmt.Println(list1, list2)
+
+	for _, item1 := range list1 {
+		var counter int
+		for _, item2 := range list2 {
+			if item1 == item2 {
+				counter++
+			}
+		}
+		similarity_score = similarity_score + item1 * counter
+	}
+
+	 
+
+	return similarity_score
+}
+
+
+
+
+func part1(filename string) int {
+	list1, list2 := readFile(filename)
+
+	slices.Sort(list1)
+	slices.Sort(list2)
+
+	var data [][]int
+
+	for i := 0; i < len(list1); i++ {
+		data = append(data, []int{list1[i], list2[i]})
+	}
+
 	var results []int
 
 	for _, pair := range data {
@@ -36,7 +81,8 @@ func main() {
 	for _, result := range results {
 		sum = sum + result
 	}
-	fmt.Println(sum)
+
+	return sum
 }
 
 
@@ -66,14 +112,15 @@ func sort2D(data [][]int) [][]int {
 }
 
 
-func readFile(filename string) [][]int {
+func readFile(filename string) ([]int, []int) {
 	file, err := os.Open(filename)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer file.Close()
 
-	var data [][]int
+	var list1 []int
+	var list2 []int
 	scanner := bufio.NewScanner(file)
 
 	for scanner.Scan() {
@@ -91,10 +138,11 @@ func readFile(filename string) [][]int {
 			log.Fatal("Error parsing numbers: ", line)
 		}
 
-		data = append(data, []int{num1, num2})
+		list1 = append(list1, num1)
+		list2 = append(list2, num2)
 	}
 
-	return data
+	return list1, list2
 }
 
 
