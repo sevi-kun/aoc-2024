@@ -20,11 +20,64 @@ type Crossword struct {
 
 func main() {
 	//fmt.Println(part1("example_input.txt"))
-	fmt.Println(part1("input.txt"))
-	//mt.Println(part2("example_input.txt"))
+	//fmt.Println(part1("input.txt"))
+	fmt.Println(part2("example_input.txt"))
 	//fmt.Println(part2("input.txt"))
 }
 
+// find X-MAS crosswords (MAS in the shape of an X)
+func part2(filename string) int {
+	data := readFile(filename)
+	var result int
+
+	re_A := regexp.MustCompile(`A`)
+
+	for i, line := range data {
+
+		index_list_a := re_A.FindAllStringIndex(line, -1)
+
+		for _, a_index := range index_list_a {
+			a_pos := Position{i, a_index[0]}
+			if findXmas(data, a_pos) {
+				result++
+			}
+		}
+
+	}
+
+	return result
+}
+
+// Returns true if X-MAS crossword is found at the given a_pos, false otherwise
+func findXmas(data []string, a_pos Position) bool {
+	var validityScore int // needs exactly 2 matches
+	dirs_m := []string{"left_up", "left_down", "right_up", "right_down"}
+	dirs_s := []string{"right_down", "right_up", "left_down", "left_up"}
+
+	for i, dir_m := range dirs_m {
+		if safeDirection(dir_m, a_pos) && safeDirection(dirs_s[i], a_pos) {
+			if findXmasChar(data, a_pos, dir_m, 'M') && findXmasChar(data, a_pos, dirs_s[i], 'S') {
+				validityScore++
+			}
+		}
+	}
+
+	if validityScore == 2 {
+		return true
+	}
+	return false
+}
+
+func findXmasChar(data []string, a_pos Position, direction string, char byte) bool {
+	nextPos := findNextCharPosition(data, char, a_pos, direction)
+	if nextPos.X != -1 && nextPos.Y != -1 {
+		return true
+	}
+
+	return false
+}
+
+// find XMAS crosswords
 func part1(filename string) int {
 	data := readFile(filename)
 
@@ -38,7 +91,8 @@ func part1(filename string) int {
 		index_list_x = re_X.FindAllStringIndex(data[i], -1)
 
 		for _, x_index := range index_list_x {
-			directions := findDirection(data, Position{i, x_index[0]}, 'M')
+			dirs := []string{"left", "right", "up", "down", "left_up", "left_down", "right_up", "right_down"}
+			directions := findDirection(data, dirs, Position{i, x_index[0]}, 'M')
 
 			for _, direction := range directions {
 				x_pos := Position{i, x_index[0]}
@@ -105,8 +159,7 @@ func findNextCharPosition(data []string, char byte, startPos Position, direction
 }
 
 // Searches surrounding fields for the next character
-func findDirection(data []string, startPos Position, char byte) []string {
-	directions := []string{"left", "right", "up", "down", "left_up", "left_down", "right_up", "right_down"}
+func findDirection(data []string, directions []string, startPos Position, char byte) []string {
 	var validDirections []string
 
 	for _, direction := range directions {
