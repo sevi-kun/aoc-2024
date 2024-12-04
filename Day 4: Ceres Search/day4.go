@@ -21,8 +21,8 @@ type Crossword struct {
 func main() {
 	//fmt.Println(part1("example_input.txt"))
 	//fmt.Println(part1("input.txt"))
-	fmt.Println(part2("example_input.txt"))
-	//fmt.Println(part2("input.txt"))
+	//fmt.Println(part2("example_input.txt"))
+	fmt.Println(part2("input.txt"))
 }
 
 // find X-MAS crosswords (MAS in the shape of an X)
@@ -55,7 +55,7 @@ func findXmas(data []string, a_pos Position) bool {
 	dirs_s := []string{"right_down", "right_up", "left_down", "left_up"}
 
 	for i, dir_m := range dirs_m {
-		if safeDirection(dir_m, a_pos) && safeDirection(dirs_s[i], a_pos) {
+		if safeDirection(data, dir_m, a_pos) && safeDirection(data, dirs_s[i], a_pos) {
 			if findXmasChar(data, a_pos, dir_m, 'M') && findXmasChar(data, a_pos, dirs_s[i], 'S') {
 				validityScore++
 			}
@@ -172,29 +172,34 @@ func findDirection(data []string, directions []string, startPos Position, char b
 	return validDirections
 }
 
-func safeDirection(direction string, pos Position) bool {
-	if direction == "left" && pos.Y-1 >= 0 {
+func safeDirection(data []string, direction string, pos Position) bool {
+	min_x := 0
+	min_y := 0
+	max_x := len(data)
+	max_y := len(data[pos.X])
+
+	if direction == "left" && pos.Y-1 >= min_y {
 		return true
 	}
-	if direction == "right" && pos.Y+1 < 10 {
+	if direction == "right" && pos.Y+1 < max_y {
 		return true
 	}
-	if direction == "up" && pos.X-1 >= 0 {
+	if direction == "up" && pos.X-1 >= min_x {
 		return true
 	}
-	if direction == "down" && pos.X+1 < 10 {
+	if direction == "down" && pos.X+1 < max_x {
 		return true
 	}
-	if direction == "left_up" && pos.X-1 >= 0 && pos.Y-1 >= 0 {
+	if direction == "left_up" && pos.X-1 >= min_x && pos.Y-1 >= min_y {
 		return true
 	}
-	if direction == "left_down" && pos.X+1 < 10 && pos.Y-1 >= 0 {
+	if direction == "left_down" && pos.X+1 < max_x && pos.Y-1 >= min_y {
 		return true
 	}
-	if direction == "right_up" && pos.X-1 >= 0 && pos.Y+1 < 10 {
+	if direction == "right_up" && pos.X-1 >= min_x && pos.Y+1 < max_y {
 		return true
 	}
-	if direction == "right_down" && pos.X+1 < 10 && pos.Y+1 < 10 {
+	if direction == "right_down" && pos.X+1 < max_x && pos.Y+1 < max_y {
 		return true
 	}
 
