@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"slices"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -19,48 +20,107 @@ type Rule struct {
 
 func main() {
 	//fmt.Println(part1("example_input.txt"))
-	fmt.Println(part1("input.txt"))
+	//fmt.Println(part1("input.txt"))
 	//fmt.Println(part2("example_input.txt"))
-	//fmt.Println(part2("input.txt"))
+	fmt.Println(part2("input.txt"))
+}
+
+
+func part2(filename string) (result int) {
+	rules, updates := readFile(filename)
+
+	for _, update := range updates {
+		rulesRespected := checkUpdate(update, rules)
+		if !rulesRespected {
+			fixedUpdate := orderUpdate(update, rules)
+			if (len(fixedUpdate)-1) % 2 == 0 {
+				result = result + fixedUpdate[(len(fixedUpdate)-1) / 2]
+			}
+		}
+	}
+
+
+	return
+}
+
+
+func orderUpdate(update []int, rules []Rule) (fixedUpdate []int) {
+	fixedUpdate = make([]int, len(update))
+	copy(fixedUpdate, update)
+
+	//for !checkUpdate(fixedUpdate, rules) {
+		sort.Slice(fixedUpdate, func(i, j int) bool {
+			a := fixedUpdate[i]
+			b := fixedUpdate[j]
+			for _, rule := range rules {
+				if slices.Contains(rule.Rule, a) && slices.Contains(rule.Rule, b) {
+					if numIsBefore(a, rule) {
+						return slices.Index(update, a) < slices.Index(update, b)
+					} else if numIsAfter(a, rule) {
+						return slices.Index(update, a) > slices.Index(update, b)
+					}
+				}
+			}
+			return false
+		})
+	//}
+
+
+	return
+}
+
+
+func numIsBefore(num int, rule Rule) bool {
+	if rule.Rule[0] == num {
+		return true
+	}
+	return false
+}
+
+func numIsAfter(num int, rule Rule) bool {
+	if rule.Rule[1] == num {
+		return true
+	}
+	return false
 }
 
 func part1(filename string) (result int) {
 	rules, updates := readFile(filename)
 
 	for _, update := range updates {
-		if checkUpdate(update, rules) && (len(update)-1) % 2 == 0 {
+		rulesRespected := checkUpdate(update, rules)
+		if rulesRespected && (len(update)-1) % 2 == 0 {
 			result = result + update[(len(update)-1) / 2]
 		}
 	}
-	
+
 	return
 }
 
 
-func checkUpdate(update []int, rules []Rule) (rulesViolated bool) {
+func checkUpdate(update []int, rules []Rule) (allRulesRespected bool) {
 	var rulesMatched []Rule
+	allRulesRespected = true
 
 	for orderId := range update {
 		rulesMatched = checkRules(update, orderId, rules)
 		for _, ruleMatched := range rulesMatched {
 			if !ruleMatched.Respected {
-				rulesViolated = true
+				allRulesRespected = false
 			}
 		}
-
 	}
 
-
-	return !rulesViolated
+	return allRulesRespected
 }
 
 
 // Checks all rules for a given number in the update, referred to by orderId
-func checkRules(update []int, orderId int, rules []Rule) (matchedRules []Rule) {
+func checkRules(update []int, orderId int, rules []Rule) (rulesMatched []Rule) {
 	num := update[orderId]
 
 	for _, rule := range rules {
-		if num == rule.Rule[0] && slices.Contains(update, rule.Rule[1]) {
+		if numIsBefore(num, rule) && slices.Contains(update, rule.Rule[1]) {
 			matchedRule := Rule{
 				Rule: rule.Rule,
 				Respected: false,
@@ -69,9 +129,9 @@ func checkRules(update []int, orderId int, rules []Rule) (matchedRules []Rule) {
 			if slices.Index(update, rule.Rule[0]) < slices.Index(update, rule.Rule[1]) {
 				matchedRule.Respected = true
 			} 
-			matchedRules = append(matchedRules, matchedRule)
+			rulesMatched = append(rulesMatched, matchedRule)
 		}
-		if num == rule.Rule[1] && slices.Contains(update, rule.Rule[0]) {
+		if numIsAfter(num, rule) && slices.Contains(update, rule.Rule[0]) {
 			matchedRule := Rule{
 				Rule: rule.Rule,
 				Respected: false,
@@ -80,11 +140,11 @@ func checkRules(update []int, orderId int, rules []Rule) (matchedRules []Rule) {
 			if slices.Index(update, rule.Rule[0]) < slices.Index(update, rule.Rule[1]) {
 				matchedRule.Respected = true
 			}
-			matchedRules = append(matchedRules, matchedRule)
+			rulesMatched = append(rulesMatched, matchedRule)
 		}
 	}
 
-	return matchedRules
+	return rulesMatched
 }
 
 
@@ -123,7 +183,7 @@ func readFile(filename string) (rules []Rule, updates [][]int) {
 			}
 			updates = append(updates, nums)
 		}
-			
+
 	}
 
 	return
